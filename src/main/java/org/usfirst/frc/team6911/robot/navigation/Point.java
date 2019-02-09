@@ -3,11 +3,36 @@ package org.usfirst.frc.team6911.robot.navigation;
 public class Point {
 	private double x;
 	private double y;
+	private double targetV;
+	private double maxV;
+
 	public Point(double x, double y) {
 		this.x = x;
 		this.y = y;
 	}
+
+	public Point(double x, double y, double tarV) {
+		this.x = x;
+		this.y = y;
+		this.targetV = tarV;
+	}
 	
+	public void setMaxV(double v) {
+		maxV = v;
+	}
+	
+	public double getMaxV() {
+		return maxV;
+	}
+
+	public void setVel(double v){
+		targetV = v;
+	}
+
+	public double getVel(){
+		return targetV;
+	}
+
 	public double getX() {
 		return x;
 	}

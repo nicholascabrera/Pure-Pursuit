@@ -6,7 +6,6 @@ public class Vector extends Vector2d {
 
 	public Vector(Point p1, Point p2) {
 		super(p2.getX() - p1.getX(), p2.getY() - p1.getY());
-		
 	}
 
 }

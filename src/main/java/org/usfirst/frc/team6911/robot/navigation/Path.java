@@ -1,13 +1,13 @@
 package org.usfirst.frc.team6911.robot.navigation;
-
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
 public class Path extends ArrayList<Point>{
-	
+
 	public Path() {
-		
+		super();
 	}
+
 	public Path(Iterable<Point> path) {
 		for(Point g: path)
 			add(new Point(g.getX(), g.getY()));
@@ -18,6 +18,61 @@ public class Path extends ArrayList<Point>{
 			add(new Point(g.getX(), g.getY()));
 	}
 	
+	/**
+	This code will help with going from path to matrix, and back, as the code for smoothing 
+	the path needs a matrix instead of the current ArrayList of Points
+	**/
+
+	/**
+	What is happening in this code is instantiation, then a for loop where it loops through 
+	each element of the ArrayList, and puts the X value for each point as the first column, 
+	and the Y value for each point as the second column
+	**/
+
+	/**
+	What is happening in this code is instantiation, then a for loop where it loops through 
+	each row, and where the first column is the X value, and the second column is the Y value,
+	 adds a new Point with those values of X and Y
+	**/
+
+	public double[][] pathToMatrix(){
+		double[][] genPath = new double[size()][2];
+		for(int i = 0; i < size(); i++){
+			genPath[i][0] = get(i).getX();
+			genPath[i][1] = get(i).getY();
+		}
+		return genPath;
+	}
+
+	public static Path matrixToPath(double[][] path){
+		ArrayList<Point> temp = new ArrayList<Point>();
+		for(int i = 0; i < path.length; i++)
+			temp.add(new Point(path[i][0],path[i][1]));
+		Path genPath = new Path(temp);
+		return genPath;
+	}
+
+	public void setMaxVelocity(double pathMax) {
+		
+	}
+	
+
+	public void setTarVel(){
+		//This is for the old target velocities
+		double vNot = get(0).getVel();
+		double a = 1;
+		for(int i = 0; i < size() - 2; i++)
+			get(i).setVel(Math.sqrt((Math.pow(vNot, 2) + (2 * a * get(i).distFrom(get(i+1))))));
+		
+		//actual target velocities
+		get(size()-1).setVel(0);
+		double distance = 0;
+		for(int i = size() - 2; i > -1; i--){
+			distance = get(i).distFrom(get(i+1));
+			get(i).setVel(Math.min(get(i).getVel(), Math.sqrt(Math.pow(get(i+1).getVel() , 2) + (2 * a * distance))));
+		}
+	}
+
 	public int[] numPointForArray(double dist) {
 		int[] numPoints = new int[size()-1];
 		for(int i = 0; i < numPoints.length; i++)
@@ -26,8 +81,7 @@ public class Path extends ArrayList<Point>{
 	}
 	
 	//generatePath class
-	public ArrayList<Point> generatePath(int[] numPoints)
-	{
+	public ArrayList<Point> generatePath(int[] numPoints){
 		ArrayList<Point> genPath = new ArrayList<Point>();
 		double dimensionX = 0; double dimensionY = 0; double distanceX = 0; double distanceY = 0;
 		Point temp = new Point(0,0);
@@ -53,62 +107,57 @@ public class Path extends ArrayList<Point>{
 		genPath.add(new Point(get(size()-1).getX(), get(size()-1).getY()));
 		return genPath;
 	}
-	
-	/**
-	This code will help with going from path to matrix, and back, as the code for smoothing 
-	the path needs a matrix instead of the current ArrayList of Points
-	**/
 
 	/**
-	What is happening in this code is instantiation, then a for loop where it loops through 
-	each element of the ArrayList, and puts the X value for each point as the first column, 
-	and the Y value for each point as the second column
+	I'm not sure how the smoother works, however, it calculates the curve and changes the path based on this.
+	It takes a path, and parameters a, b, and tolerance. This algorithm is borrowed from Team 2168, and it is
+	recommended that b be within .75 and .98, with a set to 1 - b, and tolerance = 0.001.
 	**/
 
-	public double[][] pathToMatrix(ArrayList<Point> path){
-		double[][] genPath = new double[path.size()][1];
-		for(int i = 0; i < path.size(); i++){
-			genPath[i][0] = path.get(i).getX();
-			genPath[i][1] = path.get(i).getX();
-			}
-		return genPath;
-		}
-
-	/**
-	What is happening in this code is instantiation, then a for loop where it loops through 
-	each row, and where the first column is the X value, and the second column is the Y value,
-	 adds a new Point with those values of X and Y
-	**/
-
-	public ArrayList<Point> matrixToPath(double[][] path){
-		ArrayList<Point> genPath =  new ArrayList<Point>();
-		for(int i = 0; i < path[0].length; i++){
-			genPath.add(new Point(path[i][0],path[i][1]));
-			}
-		return genPath;
-		}
-
-	public double[][] smoother(double[][] path, double a, double b, double tolerance){
-		double[][] genPath = path;
+	public static double[][] smoother(double[][] path, double a, double b, double tolerance){
+		double[][] genPath = new double[path.length][path[0].length];
+		for(int r = 0; r < path.length; r++)
+			for(int c = 0; c < path[0].length; c++)
+				genPath[r][c] = path[r][c];
 		double change = tolerance;
 		
 		while(change >= tolerance){
 			change = 0.0;
-			for(int row = 0;row < path.length - 1; row++){
-				for(int col = 0;col < path[0].length - 1; col++){
+			for(int row = 1; row < path.length - 1; row++){
+				for(int col = 0; col < path[row].length; col++){
 					double temp = genPath[row][col];
-					genPath[row][col] += a * (path[row][col] - genPath[row][col]) + b * (genPath[row - 1][col] + genPath[row + 1][col] - (2.0 * genPath[row][col]));
+					genPath[row][col] += a * (path[row][col] - genPath[row][col]) + b * 
+							(genPath[row - 1][col] + genPath[row + 1][col] - (2.0 * genPath[row][col]));
 					change += Math.abs(temp - genPath[row][col]);
-					}
 				}
 			}
-		return genPath;
 		}
+		return genPath;
+	}
+
+	//Smoother, based on an instance method.
+
+	public Path smoother(double a, double b, double tolerance){
+		return new Path(matrixToPath(smoother(this.pathToMatrix(), a, b,tolerance)));
+	}
 	
+	public void setSmoother(double a, double b, double tolerance){
+		Path g = this.smoother(a, b, tolerance);
+		this.clear();
+		for(Point pint: g) 
+			this.add(new Point(pint.getX(), pint.getY()));
+	}
+	public void fullGeneration(double spacing, double a, double b, double tolerance) {
+		Path temp = new Path(generatePath(numPointForArray(spacing)));
+		temp.setSmoother(a, b, tolerance);
+		this.clear();
+		for(Point pint: temp)
+			this.add(new Point(pint.getX(), pint.getY()));
+	}
 	/**
-	I’m not quite sure how this formula works, so I cant really explain it. However, the 
-	purpose of it is to find the curvature of the turn the robot wants to take, so that it 
-	can modulate its speed based on the curvature of the turn. 
+	The formula here uses a systems of equations format to find the radius of the circle, 
+	then to get the curvature of the circle. The purpose of it is to find the curvature of the 
+	turn the robot wants to take, so that it can modulate its speed based on the curvature of the turn. 
 
 	Usually, the parameters should be the point you want to turn at, and the points on either 
 	side of it, where Q is on the leftmost of the turn, R is the rightmost, and P is the 
@@ -127,7 +176,7 @@ public class Path extends ArrayList<Point>{
 		double yOne = P.getY();
 		double yTwo = Q.getY();
 		double yThree = R.getY();
-		double kOne = 0.5 * (Math.pow(xOne, 2) + Math.pow(yOne, 2) - Math.pow(xTwo, 2) - Math.pow(yTwo, 2git) / (xOne-xTwo));
+		double kOne = 0.5 * (Math.pow(xOne, 2) + Math.pow(yOne, 2) - Math.pow(xTwo, 2) - Math.pow(yTwo, 2) / (xOne-xTwo));
 		double kTwo = (yOne -yTwo) / (xOne-xTwo);
 		double b = 0.5 * (Math.pow(xTwo, 2) - 2 * xTwo * kOne * Math.pow(yTwo, 2)  - Math.pow(xThree, 2) + 2  * xThree * kOne - Math.pow(yThree, 2)) / (xThree * kTwo - yThree + yTwo - xTwo * kTwo);
 		double a = kOne - kTwo * b;
@@ -135,6 +184,4 @@ public class Path extends ArrayList<Point>{
 		double curvature = 1 / r;
 		return curvature;
 	}
-
 }
-

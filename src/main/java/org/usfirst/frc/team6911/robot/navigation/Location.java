@@ -20,8 +20,8 @@ public class Location {
 		
 		double newX = distance * Math.cos(Math.toRadians(angle));
 		double newY = distance * Math.sin(Math.toRadians(angle));
-		currentPosition.moveX(newX - currentPosition.getX());
-		currentPosition.moveY(newY - currentPosition.getY());
+		//currentPosition.moveX(newX - currentPosition.getX());
+		//currentPosition.moveY(newY - currentPosition.getY());
 	}
 	
 }
