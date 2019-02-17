@@ -57,8 +57,7 @@ public class Robot extends IterativeRobot {
 	private Encoder lEncoder = new Encoder(0,1),
 			rEncoder = new Encoder(2,3);	//encoders for getting location.
 	private Gyro g;							//gyroscope for angle
-	private Location local = new Location(lEncoder, rEncoder, g);
-											//location for look ahead/point
+	private Location local;					//location for look ahead/point
 	private double fIndex;					//fractional index, used in lookAhead
 	private Point lPoint = new Point(0,0);	//look ahead point
 	
@@ -68,9 +67,10 @@ public class Robot extends IterativeRobot {
 	/*																			  */
 	/*----------------------------------------------------------------------------*/
 	
+	private double lDistance;		//look ahead distance
 	private double V;				//target robot velocity
-	private double L = 18;			//target Left wheels speed
-	private double R = 18;			//target right wheels speed
+	private double L;				//target Left wheels speed
+	private double R;				//target right wheels speed
 	private double C;				//curvature of arc
 	private double T = 24.296875;	//track width
 	private double tAccel;			//target acceleration
@@ -110,6 +110,22 @@ public class Robot extends IterativeRobot {
 	
 	@Override
 	public void autonomousPeriodic() {
+		
+		double weight_smooth = 0.80;
+		double a = 1 - weight_smooth;
+		double tolerance = 0.001;
+		
+		Path path = (new Path(new Point[] {new Point(1,1,0), new Point(129.54,1), 
+				new Point(129.54,-86.625), new Point(142.27, -99.355)}));
+		
+		Path genPath = new Path(path.generatePath(path.numPointForArray(6)));
+		
+		genPath = genPath.smoother( a, weight_smooth, tolerance);
+		genPath.setTarVel();
+
+		for(Point x: genPath)
+			System.out.println(x);
+		
 		switch (m_autoSelected) {
 			case kCustomAuto:
 				// Put custom auto code here
@@ -148,88 +164,51 @@ public class Robot extends IterativeRobot {
 	/*																			  */
 	/*----------------------------------------------------------------------------*/
 	
-	public void controller() {
+	public void controller(Path genPath) {
+		
+		while(genPath.closestPoint(local).size() > 3) {
+			
+		}
+		
+		local = new Location(lEncoder, rEncoder, g);
+		
+		genPath = Path.copyPath(genPath.closestPoint(local));
+		
+		
+		
+		C = curvature(lDistance);
+		
+		V = genPath.get(0).getVel();
+		
+		L = V * (2 + (C * T)) / 2;
+		R = V * (2 - (C * T)) / 2;
+		
 		ffL = kV * L + kA * tAccel;
 		ffR = kV * R + kA * tAccel;
 		fbL = kP * (L - getSpeed());
 		fbR = kP * (R - getSpeed());
 		
-		//Code to give each side of the drive train is the 
+		//Code to give each side of the drive train is the (FF + FB)
 	}
 	
 	public double getSpeed() {
 		return 99;
 	}
 	
-	public Path closestPoint(Path pa) {
-		double x, y;
-		x = local.getCurrentPosition().getX();
-		y = local.getCurrentPosition().getY();
-		Point p = new Point(x,y), closest = pa.get(0);
-		int i;
-		for(i = 1; i < pa.size(); i++) {
-			if(p.distFrom(pa.get(i)) < p.distFrom(closest)) {
-				closest = pa.get(i);
-			}
-		}
-		
-		pa = pa.removeToIndex(i);
-		
-		return pa;
-	}
-	
-	/**
-	The lookAhead method uses quadratic equation to find intersect points, then 
-	passes the x(AKA the roots) values on to the lookAheadPoint class.
-	**/
-	
-	public static double lookAhead(Point E,  Point L, Point C, double r) {
-		Vector2d d = new Vector(L,E);
-		Vector2d f = new Vector(E,C);
-		
-		double a = d.dot(d);
-		double b = 2 * f.dot(d);
-		double c = f.dot(f) - r*r ;
-		
-		double discriminant = ((Math.pow(b,2)) - (4*a*c));
-		
-		if( discriminant < 0 ) {
-			return -1;
-		}
-		
-		discriminant = (double)Math.sqrt(discriminant);
-		
-		double x1 = (-b - discriminant) / (2*a);
-		double x2 = (-b + discriminant) / (2*a);
-		
-		if(x1 >= 0 && x1 <= 1) {
-		    return x1;
-		}
-		
-		if(x2 >= 0 && x2 <= 1) {
-			return x2;
-		}
-		
-		return -1;
-	}
-	
-	public Point lookAheadPoint(Path pa, double L) {
+	public void findLookAheadPoint(Path pa, double L) {
 		double t = 0;
 		double fIndex = 0;
 		int i = 0;
 		for(i = 0; i < pa.size()-1; i++) {
-			t = lookAhead(pa.get(i), pa.get(i+1), local.getCurrentPosition(), L);
+			t = Path.lookAhead(pa.get(i), pa.get(i+1), local.getCurrentPosition(), L);
 			if(t >= 0 && t <= 1) {
 				if(fIndex > this.fIndex) {
 					this.fIndex = fIndex;
 					this.lPoint = new Point(pa.get(i).getX(), pa.get(i).getY());
-					return this.lPoint;
 				} else {
-					return this.lPoint;
 				}
 			}
 		}
-		return this.lPoint;
 	}
 	
 	public double curvature(double L) {

@@ -1,6 +1,8 @@
 package org.usfirst.frc.team6911.robot.navigation;
 import java.util.ArrayList;
 
+import edu.wpi.first.wpilibj.drive.Vector2d;
+
 @SuppressWarnings("serial")
 public class Path extends ArrayList<Point>{
 
@@ -101,6 +103,16 @@ public class Path extends ArrayList<Point>{
 		for(int i = 0; i < numPoints.length; i++)
 			numPoints[i] = (int)((get(i).distFrom(get(i+1)))/dist)-1;
 		return numPoints;
+	}
+	
+	public static Path copyPath(Path yuh) {
+		Path path = new Path();
+		
+		for(int i = 0; i < yuh.size(); i++) {
+			path.add(yuh.get(i));
+		}
+		
+		return path;
 	}
 	
 	/**
@@ -228,7 +240,7 @@ public class Path extends ArrayList<Point>{
 	such as 0.001, and the issue will be fixed with minimal error.
 	**/
 	
-	public double curvatureOfPath(Point P, Point Q, Point R){
+	public static double curvatureOfPath(Point P, Point Q, Point R){
 		double xOne = P.getX();
 		double xTwo = Q.getX();
 		double xThree = R.getX();
@@ -245,5 +257,74 @@ public class Path extends ArrayList<Point>{
 		double r = Math.sqrt(Math.pow((xOne - a), 2)  + Math.pow((yOne - b), 2));
 		double curvature = 1 / r;
 		return curvature;
+	}
+	
+	/**
+	The constrain method takes a value as well as a minimum and a maximum and 
+	constrains the value to be within the range.
+	**/
+	
+	public static double constrain(double num, double min, double max) {
+		if(num <= max && num >= min) {
+			return num;
+		} else if(num > max) {
+			return max;
+		} else if(num < min) {
+			return min;
+		}
+		return 0;
+	}
+	
+	public Path closestPoint(Location local) {
+		double x = local.getCurrentPosition().getX();
+		double y = local.getCurrentPosition().getY();
+		
+		Point p = new Point(x,y), closest = get(1);
+		int i;
+		
+		for(i = 1; i < size(); i++) {
+			if(p.distFrom(get(i)) < p.distFrom(closest)) {
+				closest = get(i);
+			}
+		}
+		
+		this.removeToIndex(i - 1);
+		
+		return this;
+	}
+	
+	/**
+	The lookAhead method uses quadratic equation to find intersect points, then 
+	passes the x(AKA the roots) values on to the lookAheadPoint class.
+	**/
+	
+	public static double lookAhead(Point E,  Point L, Point C, double r) {
+		Vector2d d = new Vector(L,E);
+		Vector2d f = new Vector(E,C);
+		
+		double a = d.dot(d);
+		double b = 2 * f.dot(d);
+		double c = f.dot(f) - r*r ;
+		
+		double discriminant = ((Math.pow(b,2)) - (4*a*c));
+		
+		if( discriminant < 0 ) {
+			return -1;
+		}
+		
+		discriminant = (double)Math.sqrt(discriminant);
+		
+		double x1 = (-b - discriminant) / (2*a);
+		double x2 = (-b + discriminant) / (2*a);
+		
+		if(x1 >= 0 && x1 <= 1) {
+		    return x1;
+		}
+		
+		if(x2 >= 0 && x2 <= 1) {
+			return x2;
+		}
+		
+		return -1;
 	}
 }
