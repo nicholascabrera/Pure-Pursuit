@@ -70,15 +70,19 @@ public class Robot extends IterativeRobot {
 	
 	private double V;				//target robot velocity
 	private double L = 18;			//target Left wheels speed
-	private double R;				//target right wheels speed
+	private double R = 18;			//target right wheels speed
 	private double C;				//curvature of arc
 	private double T = 24.296875;	//track width
-	private double kA;				//acceleration constant
-	private double kP;				//proportional feedback constant
-	private double kV;				//velocity constant
-	private double FF;				//feed forward term
-	private double FB;				//feedback term
+	private double tAccel;			//target acceleration
 	
+	private double kA = 0.00;//2;	//acceleration constant
+	private double kP = 0.0;//1;	//proportional feedback constant
+	private double kV = 3.3;		//velocity constant
+	
+	private double ffL;				//Left feed forward term
+	private double fbL;				//Left feedback term
+	private double ffR;				//Right feed forward term
+	private double fbR;				//Right feedback term
 	
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -91,18 +95,6 @@ public class Robot extends IterativeRobot {
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
 	}
-
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString line to get the auto name from the text box below the Gyro
-	 *
-	 * <p>You can add additional auto modes by adding additional comparisons to
-	 * the switch structure below with additional strings. If using the
-	 * SendableChooser make sure to add them to the chooser code above as well.
-	 */
 	
 	@Override
 	public void autonomousInit() {
@@ -149,6 +141,25 @@ public class Robot extends IterativeRobot {
 	
 	@Override
 	public void testPeriodic() {}
+	
+	/*----------------------------------------------------------------------------*/
+	/*																			  */
+	/* CONTROL LOOP										                          */
+	/*																			  */
+	/*----------------------------------------------------------------------------*/
+	
+	public void controller() {
+		ffL = kV * L + kA * tAccel;
+		ffR = kV * R + kA * tAccel;
+		fbL = kP * (L - getSpeed());
+		fbR = kP * (R - getSpeed());
+		
+		//Code to give each side of the drive train is the 
+	}
+	
+	public double getSpeed() {
+		return 99;
+	}
 	
 	public Path closestPoint(Path pa) {
 		double x, y;
@@ -242,26 +253,11 @@ public class Robot extends IterativeRobot {
 		return sCurvature;
 	}
 	
-	public void rateLimiter(double input) {
+	public double rateLimiter(double input) {
 		double deltaT = t.get() - this.time;
 		this.time = t.get();
 		double maxChange = deltaT * maxRate;
-		output += constrain(input - output, -maxChange, maxChange);
-	}
-	
-	/**
-	The constrain method takes a value as well as a minimum and a maximum and 
-	constrains the value to be within the range.
-	**/
-	
-	public static double constrain(double num, double min, double max) {
-		if(num <= max && num >= min) {
-			return num;
-		} else if(num > max) {
-			return max;
-		} else if(num < min) {
-			return min;
-		}
-		return 0;
+		output += Path.constrain(input - output, -maxChange, maxChange);
+		return output;
 	}
 }
