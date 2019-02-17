@@ -167,6 +167,11 @@ public class Robot extends IterativeRobot {
 		return pa;
 	}
 	
+	/**
+	The lookAhead method uses quadratic equation to find intersect points, then 
+	passes the x(AKA the roots) values on to the lookAheadPoint class.
+	**/
+	
 	public static double lookAhead(Point E,  Point L, Point C, double r) {
 		Vector2d d = new Vector(L,E);
 		Vector2d f = new Vector(E,C);
@@ -183,15 +188,15 @@ public class Robot extends IterativeRobot {
 		
 		discriminant = (double)Math.sqrt(discriminant);
 		
-		double t1 = (-b - discriminant) / (2*a);
-		double t2 = (-b + discriminant) / (2*a);
+		double x1 = (-b - discriminant) / (2*a);
+		double x2 = (-b + discriminant) / (2*a);
 		
-		if(t1 >= 0 && t1 <= 1) {
-		    return t1;
+		if(x1 >= 0 && x1 <= 1) {
+		    return x1;
 		}
 		
-		if(t2 >= 0 && t2 <= 1) {
-			return t2;
+		if(x2 >= 0 && x2 <= 1) {
+			return x2;
 		}
 		
 		return -1;
