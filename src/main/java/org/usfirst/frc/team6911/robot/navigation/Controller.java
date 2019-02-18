@@ -15,7 +15,6 @@ public class Controller {
 	/*																			  */
 	/*----------------------------------------------------------------------------*/
 
-
 	Path genPath;
 	
 	/*----------------------------------------------------------------------------*/
@@ -25,7 +24,6 @@ public class Controller {
 	/*----------------------------------------------------------------------------*/
 	
 
-	private Gyro g;							//gyroscope for angle
 	private Point lPoint = new Point(0,0);	//look ahead point
 	private double lDistance;				//look ahead distance
 	private Point currentPosition;
@@ -41,8 +39,6 @@ public class Controller {
 	private double xLocation;
 	private double yLocation;
 	private double distance;
-	private Encoder lEncoder = new Encoder(0,1),
-			rEncoder = new Encoder(2,3);	//encoders for getting location.
 	private double time;			//time for time difference in rate limiter
 	private double output;			//rate limiter output
 	private Timer t = new Timer();	//timer for rate limiter
@@ -93,8 +89,7 @@ public class Controller {
 	
 	
 	
-	
-	public HashMap<Double, Double> controlLoop() {
+	public HashMap<Double, Double> controlLoop(Encoder lEncoder, Encoder rEncoder, Gyro g, double speed) {
 		
 		distance = Math.abs((6*3.14)*(rEncoder.get() + lEncoder.get()/2)/360);
 		xLocation = distance * Math.cos(g.getAngle());
@@ -118,8 +113,8 @@ public class Controller {
 			
 			ffL = kV * L + kA * tAccel;
 			ffR = kV * R + kA * tAccel;
-			fbL = kP * (L - getSpeed());
-			fbR = kP * (R - getSpeed());
+			fbL = kP * (L - speed);
+			fbR = kP * (R - speed);
 			
 			Left = (ffL + fbL);
 			Right = (ffR + fbR);
@@ -130,12 +125,7 @@ public class Controller {
 			return wV;
 		}
 		
-		return wV;
-		
-	}
-	
-	public double getSpeed() {
-		return 99;
+		return wV;	
 	}
 
 	public double rateLimiter(double input) {

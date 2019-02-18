@@ -66,6 +66,8 @@ public class Robot extends IterativeRobot {
 		Controller comp = new Controller(new Point[] {new Point(1,1,0), new Point(129.54,1), 
 				new Point(129.54,-86.625), new Point(142.27, -99.355)}, weight_smooth, tolerance);
 		
+		
+	
 		comp.controlLoop();
 		
 		switch (m_autoSelected) {
