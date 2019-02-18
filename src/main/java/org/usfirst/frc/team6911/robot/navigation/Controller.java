@@ -1,5 +1,7 @@
 package org.usfirst.frc.team6911.robot.navigation;
 
+import java.util.HashMap;
+
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
@@ -68,8 +70,10 @@ public class Controller {
 	private double fbL;				//Left feedback term
 	private double ffR;				//Right feed forward term
 	private double fbR;				//Right feedback term
+	private Double Left;
+	private Double Right;
 	
-	
+	private HashMap<Double, Double> wV = new HashMap<>();
 	
 	
 	
@@ -90,7 +94,7 @@ public class Controller {
 	
 	
 	
-	public void controlLoop() {
+	public HashMap<Double, Double> controlLoop() {
 		
 		distance = Math.abs((6*3.14)*(rEncoder.get() + lEncoder.get()/2)/360);
 		xLocation = distance * Math.cos(g.getAngle());
@@ -117,9 +121,16 @@ public class Controller {
 			fbL = kP * (L - getSpeed());
 			fbR = kP * (R - getSpeed());
 			
-			//Code to give each side of the drive train is the (FF + FB) for each side independently.
+			Left = (ffL + fbL);
+			Right = (ffR + fbR);
 			
+			wV.put(Left, Right);
+			wV.remove(Left);
+			
+			return wV;
 		}
+		
+		return wV;
 		
 	}
 	
