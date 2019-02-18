@@ -325,4 +325,21 @@ public class Path extends ArrayList<Point>{
 		
 		return -1;
 	}
+
+	public static Point findLookAheadPoint(Path path, double L, Point cPosition, Point lPoint) {
+		double t = 0;
+		double fIndex = 0;
+		int i = 0;
+		for(i = 0; i < path.size()-1; i++) {
+			t = lookAhead(path.get(i), path.get(i+1), cPosition, L);
+			fIndex = t + i;
+			if(t >= 0 && t <= 1) {
+				if(fIndex > lPoint.fIndex()) {
+					lPoint.setIndex(fIndex);
+					return lPoint = new Point(path.get(i).getX(), path.get(i).getY());
+				}
+			}
+		}
+		return lPoint;
+	}
 }

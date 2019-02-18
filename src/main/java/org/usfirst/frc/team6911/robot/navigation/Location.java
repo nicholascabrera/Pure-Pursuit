@@ -18,7 +18,7 @@ public class Location {
 		rightEncoder = right;
 		gyro = a;
 		
-		distance = Math.abs((6*3.14)*(rightEncoder.get() + leftEncoder.get()/2)/360);
+		distance = Math.abs((6 * 3.14) * (rightEncoder.get() + leftEncoder.get() / 2) / 360);
 		xLocation = distance * Math.cos(gyro.getAngle());
 		yLocation = distance * Math.sin(gyro.getAngle());
 		currentPosition = new Point(xLocation, yLocation);
@@ -31,7 +31,7 @@ public class Location {
 	public void setCurrentPosition(Point currentPosition) {
 		this.currentPosition = currentPosition;
 	}
-	
+
 	/*
 	public void move(double changeLeft, double changeRight, double angle) {
 		double distance = (changeLeft + changeRight)/2.0;
