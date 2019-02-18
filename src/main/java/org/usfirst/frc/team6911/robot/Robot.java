@@ -7,17 +7,14 @@
 
 package org.usfirst.frc.team6911.robot;
 
-import org.usfirst.frc.team6911.robot.navigation.Location;
 import org.usfirst.frc.team6911.robot.navigation.Path;
 import org.usfirst.frc.team6911.robot.navigation.Point;
-import org.usfirst.frc.team6911.robot.navigation.Vector;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.drive.Vector2d;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -57,9 +54,12 @@ public class Robot extends IterativeRobot {
 	private Encoder lEncoder = new Encoder(0,1),
 			rEncoder = new Encoder(2,3);	//encoders for getting location.
 	private Gyro g;							//gyroscope for angle
-	private Location local;					//location for look ahead/point
 	private double fIndex;					//fractional index, used in lookAhead
 	private Point lPoint = new Point(0,0);	//look ahead point
+	private Point currentPosition;
+	private double xLocation;
+	private double yLocation;
+	private double distance;
 	
 	/*----------------------------------------------------------------------------*/
 	/*																			  */
@@ -72,7 +72,7 @@ public class Robot extends IterativeRobot {
 	private double L;				//target Left wheels speed
 	private double R;				//target right wheels speed
 	private double C;				//curvature of arc
-	private double T = 24.296875;	//track width
+	private double T = 26.296875;	//track width
 	private double tAccel;			//target acceleration
 	
 	private double kA = 0.00;//2;	//acceleration constant
@@ -83,6 +83,9 @@ public class Robot extends IterativeRobot {
 	private double fbL;				//Left feedback term
 	private double ffR;				//Right feed forward term
 	private double fbR;				//Right feedback term
+	
+	
+	
 	
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -111,6 +114,12 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousPeriodic() {
 		
+		/*----------------------------------------------------------------------*/
+		/*																		*/
+		/* SETTING UP PATH AND SMOOTHER CLASS				                    */
+		/*																		*/
+		/*----------------------------------------------------------------------*/
+		
 		double weight_smooth = 0.80;
 		double a = 1 - weight_smooth;
 		double tolerance = 0.001;
@@ -123,8 +132,18 @@ public class Robot extends IterativeRobot {
 		genPath = genPath.smoother( a, weight_smooth, tolerance);
 		genPath.setTarVel();
 
-		for(Point x: genPath)
-			System.out.println(x);
+		/*----------------------------------------------------------------------*/
+		/*																		*/
+		/* GETTING LOCATION FOR THE ROBOT					                    */
+		/*																		*/
+		/*----------------------------------------------------------------------*/
+		
+		distance = Math.abs((6*3.14)*(rEncoder.get() + lEncoder.get()/2)/360);
+		xLocation = distance * Math.cos(g.getAngle());
+		yLocation = distance * Math.sin(g.getAngle());
+		currentPosition = new Point(xLocation, yLocation);
+		
+		//SEPARATION
 		
 		switch (m_autoSelected) {
 			case kCustomAuto:
@@ -166,29 +185,27 @@ public class Robot extends IterativeRobot {
 	
 	public void controller(Path genPath) {
 		
-		while(genPath.closestPoint(local).size() > 3) {
+		while(genPath.size() > 1) {
+			
+			C = curvature(lDistance);
+			
+			genPath = Path.copyPath(genPath.closestPoint(currentPosition));
+			
+			V = rateLimiter(genPath.get(0).getVel());
+			
+			tAccel = (T * V) / 2;
+			
+			L = (V * (2 + (C * T))) / 2;
+			R = (V * (2 - (C * T))) / 2;
+			
+			ffL = kV * L + kA * tAccel;
+			ffR = kV * R + kA * tAccel;
+			fbL = kP * (L - getSpeed());
+			fbR = kP * (R - getSpeed());
+			//Code to give each side of the drive train is the (FF + FB)
 			
 		}
 		
-		local = new Location(lEncoder, rEncoder, g);
-		
-		genPath = Path.copyPath(genPath.closestPoint(local));
-		
-		
-		
-		C = curvature(lDistance);
-		
-		V = genPath.get(0).getVel();
-		
-		L = V * (2 + (C * T)) / 2;
-		R = V * (2 - (C * T)) / 2;
-		
-		ffL = kV * L + kA * tAccel;
-		ffR = kV * R + kA * tAccel;
-		fbL = kP * (L - getSpeed());
-		fbR = kP * (R - getSpeed());
-		
-		//Code to give each side of the drive train is the (FF + FB)
 	}
 	
 	public double getSpeed() {
@@ -200,7 +217,7 @@ public class Robot extends IterativeRobot {
 		double fIndex = 0;
 		int i = 0;
 		for(i = 0; i < pa.size()-1; i++) {
-			t = Path.lookAhead(pa.get(i), pa.get(i+1), local.getCurrentPosition(), L);
+			t = Path.lookAhead(pa.get(i), pa.get(i+1), currentPosition, L);
 			if(t >= 0 && t <= 1) {
 				if(fIndex > this.fIndex) {
 					this.fIndex = fIndex;
@@ -214,8 +231,8 @@ public class Robot extends IterativeRobot {
 	public double curvature(double L) {
 		
 		//variable instantiation
-		double localX = this.local.getCurrentPosition().getX();
-		double localY = this.local.getCurrentPosition().getY();
+		double localX = this.currentPosition.getX();
+		double localY = this.currentPosition.getY();
 		double rAngle = g.getAngle();
 		double a = -Math.tan(rAngle);
 		double b = 1;

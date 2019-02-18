@@ -31,6 +31,7 @@ public class Location {
 	public void setCurrentPosition(Point currentPosition) {
 		this.currentPosition = currentPosition;
 	}
+	
 	/*
 	public void move(double changeLeft, double changeRight, double angle) {
 		double distance = (changeLeft + changeRight)/2.0;

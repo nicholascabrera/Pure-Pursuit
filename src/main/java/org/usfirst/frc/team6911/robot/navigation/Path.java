@@ -275,11 +275,9 @@ public class Path extends ArrayList<Point>{
 		return 0;
 	}
 	
-	public Path closestPoint(Location local) {
-		double x = local.getCurrentPosition().getX();
-		double y = local.getCurrentPosition().getY();
+	public Path closestPoint(Point p) {
 		
-		Point p = new Point(x,y), closest = get(1);
+		Point closest = get(1);
 		int i;
 		
 		for(i = 1; i < size(); i++) {
