@@ -6,25 +6,29 @@ import edu.wpi.first.wpilibj.interfaces.Gyro;
 
 public class Controller {
 	
+	
+	/*----------------------------------------------------------------------------*/
+	/*																			  */
+	/* INSTANTIATION OF THE PATH OBJECT			          			   	          */
+	/*																			  */
+	/*----------------------------------------------------------------------------*/
+
+
 	Path genPath;
 	
-	
-	private double time;			//time for time difference in rate limiter
-	private double output;			//rate limiter output
-	private Timer t = new Timer();	//timer for rate limiter
-	private double maxRate;			//maximum rate of acceleration - rate limiter
-	
 	/*----------------------------------------------------------------------------*/
 	/*																			  */
-	/* INSTANTIATION OF THE LOCATION AND LOOK AHEAD VARAIBLES                     */
+	/* INSTANTIATION OF THE LOOK AHEAD VARAIBLES          			   	          */
 	/*																			  */
 	/*----------------------------------------------------------------------------*/
 	
+
 	private Gyro g;							//gyroscope for angle
 	private Point lPoint = new Point(0,0);	//look ahead point
 	private double lDistance;				//look ahead distance
 	private Point currentPosition;
 	
+
 	/*----------------------------------------------------------------------------*/
 	/*																			  */
 	/* INSTANTIATION OF THE RATE LIMITER VARIABLES		                          */
@@ -37,6 +41,10 @@ public class Controller {
 	private double distance;
 	private Encoder lEncoder = new Encoder(0,1),
 			rEncoder = new Encoder(2,3);	//encoders for getting location.
+	private double time;			//time for time difference in rate limiter
+	private double output;			//rate limiter output
+	private Timer t = new Timer();	//timer for rate limiter
+	private double maxRate;			//maximum rate of acceleration - rate limiter
 	
 	
 	/*----------------------------------------------------------------------------*/

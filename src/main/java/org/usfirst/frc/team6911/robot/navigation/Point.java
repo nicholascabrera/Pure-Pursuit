@@ -4,7 +4,6 @@ public class Point {
 	private double x;
 	private double y;
 	private double targetV;
-	private double maxV;
 	private double fIndex;
 
 	public Point(double x, double y) {
@@ -16,14 +15,6 @@ public class Point {
 		this.x = x;
 		this.y = y;
 		this.targetV = tarV;
-	}
-	
-	public void setMaxV(double v) {
-		maxV = v;
-	}
-	
-	public double getMaxV() {
-		return maxV;
 	}
 
 	public void setVel(double v){
@@ -57,17 +48,9 @@ public class Point {
 	public void setY(double y) {
 		this.y = y;
 	}
-	
-	public double angleBetween(Point p) {
-		return Math.asin(y-p.getY()/x-p.getX());
-	}
 
 	public double distFrom(Point p) {
 		return Math.sqrt(Math.abs(p.getX()-x)*Math.abs(p.getX()-x) + Math.abs(p.getY()-y)*Math.abs(p.getY()-y));
-	}
-	
-	public String toString() {
-		return "(" + x + ", " + y + ")";
 	}
 
 	public static double curvature(double L, Point cPosition, double rAngle, Point lPoint) {

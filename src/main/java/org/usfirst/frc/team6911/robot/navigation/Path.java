@@ -165,8 +165,7 @@ public class Path extends ArrayList<Point>{
 	recommended that b be within .75 and .98, with a set to 1 - b, and tolerance = 0.001.
 	**/
 
-	public static double[][] smoother(double[][] path, double a, double b, 
-			double tolerance) {
+	public static double[][] smoother(double[][] path, double a, double b, double tolerance) {
 		double[][] genPath = new double[path.length][path[0].length];
 		for(int r = 0; r < path.length; r++)
 			for(int c = 0; c < path[0].length; c++)
@@ -195,33 +194,6 @@ public class Path extends ArrayList<Point>{
 
 	public Path smoother(double a, double b, double tolerance){
 		return new Path(matrixToPath(smoother(this.pathToMatrix(), a, b,tolerance)));
-	}
-	
-	/**
-	The setSmoother method is a method that uses the modified smoother class, and is called by the fullGeneration class
-	to create a new Path object that is smoothed.
-	**/
-
-	public void setSmoother(double a, double b, double tolerance){
-		Path g = this.smoother(a, b, tolerance);
-		this.clear();
-		for(Point pint: g) 
-			this.add(new Point(pint.getX(), pint.getY()));
-	}
-
-	/**
-	The fullGeneration method is a simple method that allows easy testing with 
-	the Pure Pursuit algorithm, allowing us to easily create a path, without the many 
-	lines of code it usually takes up in the main method, making our workspace
-	better organized and easy to read.
-	**/
-
-	public void fullGeneration(double spacing, double a, double b, double tolerance) {
-		Path temp = new Path(generatePath(numPointForArray(spacing)));
-		temp.setSmoother(a, b, tolerance);
-		this.clear();
-		for(Point pint: temp)
-			this.add(new Point(pint.getX(), pint.getY()));
 	}
 
 	/**
