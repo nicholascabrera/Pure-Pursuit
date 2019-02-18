@@ -70,6 +70,7 @@ public class Controller {
 	private Double Right;
 	
 	private HashMap<Double, Double> wV = new HashMap<>();
+	private boolean isFinished = false;
 	
 	
 	
@@ -96,7 +97,7 @@ public class Controller {
 		yLocation = distance * Math.sin(g.getAngle());
 		currentPosition = new Point(xLocation, yLocation);
 		
-		while(genPath.size() > 1) {
+		while(genPath.size() > 1 || isFinished != false) {
 			
 			lPoint = Path.findLookAheadPoint(genPath, lDistance, currentPosition, lPoint);
 
@@ -125,7 +126,8 @@ public class Controller {
 			return wV;
 		}
 		
-		return wV;	
+		this.isFinished = true;
+		return wV;
 	}
 
 	public double rateLimiter(double input) {
