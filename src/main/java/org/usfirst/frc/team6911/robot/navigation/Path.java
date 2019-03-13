@@ -249,16 +249,16 @@ public class Path extends ArrayList<Point>{
 	
 	public Path closestPoint(Point p) {
 		
-		Point closest = get(1);
+		Point closest = get(0);
 		int i;
 		
 		for(i = 1; i < size(); i++) {
 			if(p.distFrom(get(i)) < p.distFrom(closest)) {
 				closest = get(i);
+				this.removeToIndex(i - 1);
+				return this;
 			}
 		}
-		
-		this.removeToIndex(i - 1);
 		
 		return this;
 	}

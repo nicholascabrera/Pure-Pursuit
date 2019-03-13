@@ -70,7 +70,7 @@ public class Controller {
 	private Double Left;
 	private Double Right;
 	
-	private HashMap<Double, Double> wV = new HashMap<>();
+	private HashMap<String, Double> wV = new HashMap<>();
 	public boolean isFinished = false;
 	
 	
@@ -93,47 +93,54 @@ public class Controller {
 	
 	public HashMap<Double, Double> controlLoop(double lPosition, double rPosition, double heading, double lSpeed, double rSpeed, double cTime) {
 		
-		distance = Math.abs((6*3.14)*(rPosition + lPosition/2)/360);
-		xLocation = distance * Math.cos(heading);
-		yLocation = distance * Math.sin(heading);
-		currentPosition = new Point(xLocation, yLocation);
+		this.distance = Math.abs((6*3.14)*(rPosition + lPosition/2)/360);
+		this.xLocation = this.distance * Math.cos(heading);
+		this.yLocation = this.distance * Math.sin(heading);
+		currentPosition = new Point(this.xLocation, this.yLocation);
 		
-		while(genPath.size() > 1 || isFinished != false) {
+		while(genPath.size() > 1 || this.isFinished != false) {
 			
-			lPoint = Path.findLookAheadPoint(genPath, lDistance, currentPosition, lPoint);
+			this.lPoint = Path.findLookAheadPoint(genPath, this.lDistance, currentPosition, this.lPoint);
 
-			C = Point.curvature(lDistance, currentPosition, heading, lPoint);
+			this.C = Point.curvature(this.lDistance, currentPosition, heading, this.lPoint);
 			
-			genPath = Path.copyPath(genPath.closestPoint(currentPosition));
+			Path path = new Path(genPath.closestPoint(currentPosition));
+			double len = path.size();
+
+			genPath.clear();
+
+			for(int i = 0; i < len; i ++){
+				genPath.add(path.get(i));
+			}
 			
-			V = rateLimiter(genPath.get(0).getVel(), cTime);
+			this.V = rateLimiter(genPath.get(0).getVel(), cTime);
 			
-			LF = (V * (2 + (C * T))) / 2;
-			RF = (V * (2 - (C * T))) / 2;
+			this.LF = (this.V * (2 + (this.C * this.T))) / 2;
+			this.RF = (this.V * (2 - (this.C * this.T))) / 2;
 			
 			double distance = currentPosition.distFrom(lPoint);
 
-			tAccel = rateLimiter((((LF * LF) - (LO * LO)) / (2 * distance)), cTime);
+			this.tAccel = rateLimiter( ( ( (this.LF * this.LF) - (this.LO * this.LO) ) / (2 * distance) ), cTime );
 			
-			ffL = kV * LF + kA * tAccel;
-			ffR = kV * RF + kA * tAccel;
-			fbL = kP * (LF - lSpeed);
-			fbR = kP * (RF - rSpeed);
+			this.ffL = this.kV * this.LF + this.kA * this.tAccel;
+			this.ffR = this.kV * this.RF + this.kA * this.tAccel;
+			this.fbL = this.kP * (this.LF - this.lSpeed);
+			this.fbR = this.kP * (this.RF - this.rSpeed);
 			
-			Left = (ffL + fbL);
-			Right = (ffR + fbR);
+			this.Left = (this.ffL + this.fbL);
+			this.Right = (this.ffR + this.fbR);
 
-			LO = LF;
-			RO = RF;
+			this.LO = this.LF;
+			this.RO = this.RF;
 			
-			wV.put(Left, Right);
-			wV.remove(Left);
+			this.wV.put("Left", Left);
+			this.wV.put("Right", Right);
 			
-			return wV;
+			return this.wV;
 		}
 		
 		this.isFinished = true;
-		return wV;
+		return this.wV;
 	}
 
 	public double rateLimiter(double input, double cTime) {
