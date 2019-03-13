@@ -41,7 +41,6 @@ public class Controller {
 	private double distance;
 	private double time;			//time for time difference in rate limiter
 	private double output;			//rate limiter output
-	private Timer t = new Timer();	//timer for rate limiter
 	private double maxRate;			//maximum rate of acceleration - rate limiter
 	
 	
@@ -52,8 +51,10 @@ public class Controller {
 	/*----------------------------------------------------------------------------*/
 	
 	private double V;				//target robot velocity
-	private double L;				//target Left wheels speed
-	private double R;				//target right wheels speed
+	private double LO;				//target Left wheels speed
+	private double RO;				//target right wheels speed
+	private double LF;				//target Left wheels speed
+	private double RF;				//target right wheels speed
 	private double C;				//curvature of arc
 	private double T = 26.296875;	//track width
 	private double tAccel;			//target acceleration
@@ -70,7 +71,7 @@ public class Controller {
 	private Double Right;
 	
 	private HashMap<Double, Double> wV = new HashMap<>();
-	private boolean isFinished = false;
+	public boolean isFinished = false;
 	
 	
 	
@@ -90,35 +91,40 @@ public class Controller {
 	
 	
 	
-	public HashMap<Double, Double> controlLoop(Encoder lEncoder, Encoder rEncoder, Gyro g, double speed) {
+	public HashMap<Double, Double> controlLoop(double lPosition, double rPosition, double heading, double lSpeed, double rSpeed, double cTime) {
 		
-		distance = Math.abs((6*3.14)*(rEncoder.get() + lEncoder.get()/2)/360);
-		xLocation = distance * Math.cos(g.getAngle());
-		yLocation = distance * Math.sin(g.getAngle());
+		distance = Math.abs((6*3.14)*(rPosition + lPosition/2)/360);
+		xLocation = distance * Math.cos(heading);
+		yLocation = distance * Math.sin(heading);
 		currentPosition = new Point(xLocation, yLocation);
 		
 		while(genPath.size() > 1 || isFinished != false) {
 			
 			lPoint = Path.findLookAheadPoint(genPath, lDistance, currentPosition, lPoint);
 
-			C = Point.curvature(lDistance, currentPosition, g.getAngle(), lPoint);
+			C = Point.curvature(lDistance, currentPosition, heading, lPoint);
 			
 			genPath = Path.copyPath(genPath.closestPoint(currentPosition));
 			
-			V = rateLimiter(genPath.get(0).getVel());
+			V = rateLimiter(genPath.get(0).getVel(), cTime);
 			
-			tAccel = (T * V) / 2;
+			LF = (V * (2 + (C * T))) / 2;
+			RF = (V * (2 - (C * T))) / 2;
 			
-			L = (V * (2 + (C * T))) / 2;
-			R = (V * (2 - (C * T))) / 2;
+			double distance = currentPosition.distFrom(lPoint);
+
+			tAccel = rateLimiter((((LF * LF) - (LO * LO)) / (2 * distance)), cTime);
 			
-			ffL = kV * L + kA * tAccel;
-			ffR = kV * R + kA * tAccel;
-			fbL = kP * (L - speed);
-			fbR = kP * (R - speed);
+			ffL = kV * LF + kA * tAccel;
+			ffR = kV * RF + kA * tAccel;
+			fbL = kP * (LF - lSpeed);
+			fbR = kP * (RF - rSpeed);
 			
 			Left = (ffL + fbL);
 			Right = (ffR + fbR);
+
+			LO = LF;
+			RO = RF;
 			
 			wV.put(Left, Right);
 			wV.remove(Left);
@@ -130,9 +136,9 @@ public class Controller {
 		return wV;
 	}
 
-	public double rateLimiter(double input) {
-		double deltaT = t.get() - this.time;
-		this.time = t.get();
+	public double rateLimiter(double input, double cTime) {
+		double deltaT = ctime - this.time;
+		this.time = cTime;
 		double maxChange = deltaT * maxRate;
 		output += Path.constrain(input - output, -maxChange, maxChange);
 		return output;
