@@ -118,9 +118,9 @@ public class Controller {
 			this.LF = (this.V * (2 + (this.C * this.T))) / 2;
 			this.RF = (this.V * (2 - (this.C * this.T))) / 2;
 			
-			double distance = currentPosition.distFrom(lPoint);
+			double dist = currentPosition.distFrom(this.lPoint);
 
-			this.tAccel = rateLimiter( ( ( (this.LF * this.LF) - (this.LO * this.LO) ) / (2 * distance) ), cTime );
+			this.tAccel = rateLimiter( ( ( (this.LF * this.LF) - (this.LO * this.LO) ) / (2 * dist) ), cTime );
 			
 			this.ffL = this.kV * this.LF + this.kA * this.tAccel;
 			this.ffR = this.kV * this.RF + this.kA * this.tAccel;
