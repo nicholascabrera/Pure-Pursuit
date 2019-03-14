@@ -92,7 +92,8 @@ public class Controller {
     
     
     
-    public HashMap<String, Double> controlLoop(double lPosition, double rPosition, double heading, double lSpeed, double rSpeed, double cTime) {
+	public HashMap<String, Double> controlLoop(double lPosition, double rPosition, double heading, double lSpeed, 
+		double rSpeed, double cTime) {
         
         this.distance = Math.abs((6*3.14)*(rPosition + lPosition/2)/360);
         this.xLocation = this.distance * Math.cos(heading);
