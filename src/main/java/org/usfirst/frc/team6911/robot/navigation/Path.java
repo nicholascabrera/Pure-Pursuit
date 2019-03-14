@@ -247,21 +247,21 @@ public class Path extends ArrayList<Point>{
 		return 0;
 	}
 	
-	public Path closestPoint(Point p) {
-		
-		Point closest = get(0);
-		int i;
-		
-		for(i = 1; i < size(); i++) {
-			if(p.distFrom(get(i)) < p.distFrom(closest)) {
-				closest = get(i);
-				this.removeToIndex(i - 1);
-				return this;
-			}
-		}
-		
-		return this;
-	}
+    public Point closestPoint(Point position, Point cPoint) {
+        
+        Point closest = cPoint;
+        int i;
+        
+        for(i = 1; i < size(); i++) {
+            if(position.distFrom(get(i)) < position.distFrom(closest)) {
+                closest = get(i);
+                return closest;
+            }
+        }
+        
+        return closest;
+    }
+
 	
 	/**
 	The lookAhead method uses quadratic equation to find intersect points, then 
