@@ -106,7 +106,7 @@ public class Controller {
             this.C = Point.curvature(this.lDistance, currentPosition, heading, this.lPoint);
 
             this.cPoint = genPath.closestPoint(currentPosition, this.cPoint);
-            
+			
             this.V = this.cPoint.getVel();
             
             this.LF = (this.V * (2 + (this.C * this.T))) / 2;
